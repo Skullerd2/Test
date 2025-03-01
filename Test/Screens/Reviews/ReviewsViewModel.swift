@@ -7,17 +7,20 @@ final class ReviewsViewModel: NSObject {
     var onStateChange: ((State) -> Void)?
 
     private var state: State
+    private var amountItem: AmountCellConfig
     private let reviewsProvider: ReviewsProvider
     private let ratingRenderer: RatingRenderer
     private let decoder: JSONDecoder
 
     init(
         state: State = State(),
+        amountItem: AmountCellConfig = AmountCellConfig(amountText: NSAttributedString(string: "")),
         reviewsProvider: ReviewsProvider = ReviewsProvider(),
         ratingRenderer: RatingRenderer = RatingRenderer(),
         decoder: JSONDecoder = JSONDecoder()
     ) {
         self.state = state
+        self.amountItem = amountItem
         self.reviewsProvider = reviewsProvider
         self.ratingRenderer = ratingRenderer
         self.decoder = decoder
@@ -33,9 +36,9 @@ extension ReviewsViewModel {
 
     /// Метод получения отзывов.
     func getReviews() {
-        guard state.shouldLoad else { return }
-        state.shouldLoad = false
-        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
+        guard self.state.shouldLoad else { return }
+        self.state.shouldLoad = false
+        self.reviewsProvider.getReviews(offset: self.state.offset, completion: self.gotReviews)
     }
 
 }
@@ -48,7 +51,9 @@ private extension ReviewsViewModel {
     func gotReviews(_ result: ReviewsProvider.GetReviewsResult) {
         do {
             let data = try result.get()
+            self.decoder.keyDecodingStrategy = .convertFromSnakeCase
             let reviews = try decoder.decode(Reviews.self, from: data)
+            amountItem = makeAmountItem(reviews)
             state.items += reviews.items.map(makeReviewItem)
             state.offset += state.limit
             state.shouldLoad = state.offset < reviews.count
@@ -77,18 +82,30 @@ private extension ReviewsViewModel {
 private extension ReviewsViewModel {
 
     typealias ReviewItem = ReviewCellConfig
-
+    typealias AmountItem = AmountCellConfig
+    
     func makeReviewItem(_ review: Review) -> ReviewItem {
+        let username = ("\(review.firstName) \(review.lastName)").attributed(font: .username)
+        let rating = ratingRenderer.ratingImage(review.rating)
         let reviewText = review.text.attributed(font: .text)
         let created = review.created.attributed(font: .created, color: .created)
         let item = ReviewItem(
+            username: username,
+            rating: rating,
             reviewText: reviewText,
             created: created,
-            onTapShowMore: showMoreReview
+            onTapShowMore: { [weak self] id in
+                self?.showMoreReview(with: id)
+            }
         )
         return item
     }
 
+    func makeAmountItem(_ reviews: Reviews) -> AmountItem{
+        let amountText = ("\(reviews.count) отзывов").attributed(font: .reviewCount)
+        let item = AmountItem(amountText: amountText)
+        return item
+    }
 }
 
 // MARK: - UITableViewDataSource
@@ -96,11 +113,18 @@ private extension ReviewsViewModel {
 extension ReviewsViewModel: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        state.items.count
+        state.items.count + 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let config = state.items[indexPath.row]
+        let config: TableCellConfig
+        if indexPath.row == state.items.count{
+            config = amountItem
+        }
+        else {
+            config = state.items[indexPath.row]
+        }
+
         let cell = tableView.dequeueReusableCell(withIdentifier: config.reuseId, for: indexPath)
         config.update(cell: cell)
         return cell
@@ -113,7 +137,12 @@ extension ReviewsViewModel: UITableViewDataSource {
 extension ReviewsViewModel: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        state.items[indexPath.row].height(with: tableView.bounds.size)
+        if indexPath.row == state.items.count{
+            amountItem.height(with: tableView.bounds.size)
+        }
+        else{
+            state.items[indexPath.row].height(with: tableView.bounds.size)
+        }
     }
 
     /// Метод дозапрашивает отзывы, если до конца списка отзывов осталось два с половиной экрана по высоте.
