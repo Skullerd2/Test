@@ -10,6 +10,10 @@ final class ReviewsViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
+    deinit {
+        viewModel.onStateChange = nil
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -39,13 +43,11 @@ private extension ReviewsViewController {
     }
     
     func setupViewModel() {
-        DispatchQueue.main.async {
-            self.viewModel.onStateChange = { [weak self] _ in
-                DispatchQueue.main.async {
-                    self?.reviewsView.tableView.reloadData()
-                }
+        self.viewModel.onStateChange = { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.reviewsView.activityIndicatorView.stopAnimating()
+                self?.reviewsView.tableView.reloadData()
             }
         }
     }
-    
 }

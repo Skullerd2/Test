@@ -8,6 +8,8 @@ struct ReviewCellConfig {
 
     /// Идентификатор конфигурации. Можно использовать для поиска конфигурации в массиве.
     let id = UUID()
+    /// Аватарка.
+    let avatar: UIImage
     /// Имя пользователя.
     let username: NSAttributedString
     /// Рейтинг.
@@ -34,6 +36,7 @@ extension ReviewCellConfig: TableCellConfig {
     /// Вызывается из `cellForRowAt:` у `dataSource` таблицы.
     func update(cell: UITableViewCell) {
         guard let cell = cell as? ReviewCell else { return }
+        cell.avatarImageView.image = avatar
         cell.usernameLabel.attributedText = username
         cell.ratingImageView.image = rating
         cell.reviewTextLabel.attributedText = reviewText
@@ -125,7 +128,7 @@ private extension ReviewCell {
     }
     
     func setupUserAvatar(){
-        avatarImageView.image = UIImage(named: "l5w5aIHioYc")
+        avatarImageView.image = config?.avatar
         avatarImageView.layer.cornerRadius = Layout.avatarCornerRadius
         avatarImageView.layer.masksToBounds = true
         contentView.addSubview(avatarImageView)

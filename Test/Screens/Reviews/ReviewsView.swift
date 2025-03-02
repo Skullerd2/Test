@@ -3,7 +3,7 @@ import UIKit
 final class ReviewsView: UIView {
 
     let tableView = UITableView()
-
+    let activityIndicatorView = UIActivityIndicatorView()
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -27,8 +27,19 @@ private extension ReviewsView {
     func setupView() {
         backgroundColor = .systemBackground
         setupTableView()
+        setupActivityIndicatorView()
     }
 
+    func setupActivityIndicatorView(){
+        addSubview(activityIndicatorView)
+        activityIndicatorView.startAnimating()
+        activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            activityIndicatorView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            activityIndicatorView.centerYAnchor.constraint(equalTo: self.centerYAnchor)
+        ])
+    }
+    
     func setupTableView() {
         addSubview(tableView)
         tableView.separatorStyle = .none

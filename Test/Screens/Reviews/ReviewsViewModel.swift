@@ -38,9 +38,10 @@ extension ReviewsViewModel {
     func getReviews() {
         guard self.state.shouldLoad else { return }
         self.state.shouldLoad = false
-        self.reviewsProvider.getReviews(offset: self.state.offset, completion: self.gotReviews)
+        self.reviewsProvider.getReviews(offset: self.state.offset) { [weak self] result in
+            self?.gotReviews(result)
+        }
     }
-
 }
 
 // MARK: - Private
@@ -86,10 +87,12 @@ private extension ReviewsViewModel {
     
     func makeReviewItem(_ review: Review) -> ReviewItem {
         let username = ("\(review.firstName) \(review.lastName)").attributed(font: .username)
+        let avatar = getAvatar(url: review.avatarUrl)
         let rating = ratingRenderer.ratingImage(review.rating)
         let reviewText = review.text.attributed(font: .text)
         let created = review.created.attributed(font: .created, color: .created)
         let item = ReviewItem(
+            avatar: avatar,
             username: username,
             rating: rating,
             reviewText: reviewText,
@@ -105,6 +108,29 @@ private extension ReviewsViewModel {
         let amountText = ("\(reviews.count) отзывов").attributed(font: .reviewCount)
         let item = AmountItem(amountText: amountText)
         return item
+    }
+}
+
+//MARK: - Avatar
+
+extension ReviewsViewModel {
+    func getAvatar(url: String?) -> UIImage {
+        var avatar: UIImage? = nil
+        let semaphore = DispatchSemaphore(value: 0)
+        if let url = url {
+            reviewsProvider.getUserAvatar(urlString: url) { image in
+                avatar = image
+                semaphore.signal()
+            }
+        } else {
+            return UIImage(named: "l5w5aIHioYc")!
+        }
+        semaphore.wait()
+        if let avatar = avatar {
+            return avatar
+        } else {
+            return UIImage(named: "l5w5aIHioYc")!
+        }
     }
 }
 
@@ -167,5 +193,4 @@ extension ReviewsViewModel: UITableViewDelegate {
         let remainingDistance = contentHeight - viewHeight - targetOffsetY
         return remainingDistance <= triggerDistance
     }
-
 }

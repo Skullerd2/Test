@@ -2,6 +2,7 @@
     "count": 127,
     "items": [
         {
+            "avatar_url": "https://stihi.ru/pics/2019/12/22/4649.jpg",
             "first_name": "Иван",
             "last_name": "Петров",
             "rating": 5,
@@ -16,6 +17,7 @@
             "created": "12 минут назад"
         },
         {
+            "avatar_url": "https://proza.ru/pics/2021/07/16/912.jpg",
             "first_name": "Евгения",
             "last_name": "Петрова",
             "rating": 4,
@@ -30,6 +32,7 @@
             "created": "минуту назад"
         },
         {
+            "avatar_url": "https://i.ytimg.com/vi/lClA-vU1ga0/hqdefault.jpg",
             "first_name": "Никита",
             "last_name": "Иванов",
             "rating": 5,
@@ -37,6 +40,7 @@
             "created": "только что"
         },
         {
+            "avatar_url": "https://i.pinimg.com/originals/81/87/a9/8187a91f7ca03fbd97ca29dad3a8959d.jpg",
             "first_name": "Олег",
             "last_name": "Николаев",
             "rating": 1,
